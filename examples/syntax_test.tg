@@ -1,0 +1,64 @@
+import std;
+// import std.printf would set the printf function scope here
+
+
+word var = 6;
+word var2, var3 = -9;
+
+uword test = 99999999999999999999999;
+
+f32 test2 = 3.6;
+
+
+// pointer
+word *test_ptr = NULL;
+
+
+//array
+
+word test_arr[8];
+
+// string
+string str = "test string"; // has a size prefix
+
+
+char *str_ch = "test string"; // becomes a C string
+
+
+// struct
+
+struct struct_test
+{
+	u8 ch;
+	string test = "hello", cool = "abc;
+
+	test_functions test_f; // TODO: detect cyclical members by checking if past decl
+};
+
+
+struct test_functions
+{
+	void hello(struct_test *test_struct) //only allow cyclical parameters if pointer
+	{
+		std.printf(test_struct->cool);
+
+		std.printf(this->words);
+	}
+
+	string words = "this was inside";
+}
+
+
+word main(i32 argc, string *argv)
+{
+	struct_test test_struct; // initialized to 0 * sizeof struct_test
+
+
+	std.printf("hello %s==%s\n", "world" (char *)"world");
+
+	std.printf("value: %s\n", test_struct.test);
+
+	test_struct.test_f.hello(test_struct);
+
+	return 0;
+}
