@@ -82,6 +82,7 @@ enum
 typedef struct twang_node_t twang_node_t;
 
 typedef struct twang_node_expr_t twang_node_expr_t;
+typedef struct twang_node_postfix_expr_t twang_node_postfix_expr_t;
 typedef struct twang_node_unary_expr_t twang_node_unary_expr_t;
 typedef struct twang_node_binary_expr_t twang_node_binary_expr_t;
 typedef struct twang_node_ternary_expr_t twang_node_ternary_expr_t;
@@ -98,10 +99,11 @@ typedef struct twang_node_label_statement_t twang_node_label_statement_t;
 typedef struct twang_node_for_statement_t twang_node_for_statement_t; /* add a do flag */
 typedef struct twang_node_while_statement_t twang_node_while_statement_t; /* add a do flag */
 typedef struct twang_node_cond_statement_t twang_node_cond_statement_t;
+typedef struct twang_node_expr_statement_t twang_node_expr_statement_t;
+typedef struct twang_node_import_statement_t twang_node_import_statement_t;
 
 typedef struct twang_node_list_parameter_t twang_node_list_parameter_t;
-
-typedef struct twang_node_import_t twang_node_import_t;
+typedef struct twang_node_list_struct_t twang_node_list_struct_t;
 
 
 
@@ -127,6 +129,20 @@ struct twang_node_expr_t
 		twang_token_t *literal;
 		/* TWANG_NODE_TYPE_EXPR_OPERATION, */
 		twang_node_t *operation;
+	};
+};
+
+struct twang_node_postfix_expr_t /* expr operation */
+{
+	size_t line, column;
+	uint8_t type;
+	/* === */
+	uint8_t operation;
+	union
+	{
+		twang_node_call_expr_t *call; /* call op */
+		twang_node_t *expr; /* array subscript op, inc/dec */
+		twang_token_t *identifier; /* struct member/import dot op, deref dot op */
 	};
 };
 
@@ -190,7 +206,7 @@ struct twang_node_var_declaration_t
 	size_t line, column;
 	uint8_t type;
 	/* === */
-	uint8_t storage, type;
+	uint8_t storage, var_type;
 	twang_token_t *identifier;
 	twang_node_expr_t *initializer; /* can be null */
 	twang_node_var_declaration_t *next; /* if a list */
@@ -201,6 +217,18 @@ struct twang_node_func_definition_t
 	size_t line, column;
 	uint8_t type;
 	/* === */
+	twang_token_t *identifier;
+	twang_node_list_parameter_t *parameters;
+	twang_node_statement_t *body;
+};
+
+struct twang_node_struct_definition_t
+{
+	size_t line, column;
+	uint8_t type;
+	/* === */
+	twang_token_t *identifier;
+	twang_node_list_struct_t *member_declaration; /* a list of nodes */
 };
 
 
@@ -212,6 +240,7 @@ struct twang_node_for_statement_t
 	uint8_t type;
 	/* === */
 	twang_node_statement_t *next;
+	/* ===== */
 	uint8_t do_prefix;
 	twang_node_t *init; /* an expression or variable declaration */
 	twang_node_expr_t *condition, *iteration;
@@ -224,6 +253,7 @@ struct twang_node_while_statement_t
 	uint8_t type;
 	/* === */
 	twang_node_statement_t *next;
+	/* ===== */
 	uint8_t do_prefix;
 	twang_node_expr_t *condition;
 	twang_node_statement_t *loop;
@@ -235,10 +265,59 @@ struct twang_node_cond_statement_t
 	uint8_t type;
 	/* === */
 	twang_node_statement_t *next;
+	/* ===== */
 	twang_node_expr_t *condition; /* can be null if expected just else */
 	twang_node_statement_t *success;
 	twang_node_cond_statement_t *else_statement; /* can be an else if or just else */
 };
+
+struct twang_node_expr_statement_t
+{
+	size_t line, column;
+	uint8_t type;
+	/* === */
+	twang_node_statement_t *next;
+	/* ===== */
+	twang_node_expr_t *expression;
+};
+
+struct twang_node_import_statement_t
+{
+	size_t line, column;
+	uint8_t type;
+	/* === */
+	twang_node_statement_t *next;
+	/* ===== */
+	twang_node_expr_t *import_guide; /* uses the '.' postfix operator and identifiers. Verify its validity */
+};
+
+
+/* lists */
+
+struct twang_node_list_parameter_t
+{
+	size_t line, column;
+	uint8_t type;
+	/* === */
+	uint8_t storage, var_type;
+	twang_token_t *identifier;
+	twang_node_var_declaration_t *next;
+};
+
+struct twang_node_list_struct_t
+{
+	size_t line, column;
+	uint8_t type;
+	/* === */
+	uint8_t var_or_func; /* 1 for var, 0 for func */
+	union
+	{
+		twang_node_var_declaration_t *var_declatarion;
+		twang_node_func_definition_t *func_declaration;
+	};
+	twang_node_var_declaration_t *next;
+};
+
 
 /* === */
 
